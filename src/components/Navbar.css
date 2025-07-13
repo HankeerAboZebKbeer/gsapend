@@ -1,0 +1,171 @@
+/* ==========================
+   Navbar Base Styles
+========================== */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 15px;
+
+  padding: 10px 30px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  color: #fff;
+
+  z-index: 1000;
+}
+
+.navbar__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  width: 100%;
+  max-width: 100vw;
+  padding: 0 20px;
+
+  position: relative;
+  margin: 0 auto;
+}
+
+.navbar__inner::after {
+  content: ""; 
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ==========================
+   Logo Styles
+========================== */
+.navbar__logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 50px;
+  height: 50px;
+}
+
+.navbar__logo canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ==========================
+   Links Styles
+========================== */
+.navbar__links {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.navbar__link {
+  font-family: 'Inter', Arial, sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+
+  padding: 8px 0;
+  line-height: 1;
+
+  display: flex;
+  align-items: center;
+
+  transition: color 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.navbar__link:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+/* ==========================
+   Tools Wrapper Styles
+========================== */
+.navbar__tools-wrapper {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  padding: 8px 0;
+
+  font-family: 'Inter', Arial, sans-serif;
+  font-weight: 500;
+  font-size: 0.95rem;
+
+  line-height: 1;
+
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+
+  transition: color 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.navbar__tools-wrapper:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+/* ==========================
+   Menu Icon Styles
+========================== */
+.navbar__menu-icon {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 50px;
+  height: 50px;
+
+  margin-left: auto;
+}
+
+.navbar__menu-icon canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ==========================
+   Responsive Styles
+========================== */
+@media (min-width: 1080px) {
+  .navbar__menu-icon--small {
+    display: none;
+  }
+  .navbar__menu-icon--large {
+    display: flex;
+  }
+}
+
+@media (max-width: 1079px) {
+  .navbar__links {
+    display: none;
+  }
+  .navbar__menu-icon--small {
+    display: flex;
+  }
+  .navbar__menu-icon--large {
+    display: none;
+  }
+}
