@@ -4,34 +4,40 @@ import {
   Layout,
   Fit,
   Alignment,
+  decodeFont,
   EventType,
 } from "@rive-app/react-webgl2";
 
-export default function CarouselRiveSlide({
-  src,
-  isActive,
-  stateMachineName,
-  fontSrc,
-  audioSrc,
-}) {
+const loadAllAssets = async (asset) => {
+  if (asset.isFont) {
+    const fontUrl = "/fonts/Inter-594377.ttf";
+    const res = await fetch(fontUrl);
+    const fontBuffer = await res.arrayBuffer();
+    const font = await decodeFont(new Uint8Array(fontBuffer));
+    asset.setFont(font);
+    font.unref();
+    return true;
+  }
+  return false;
+};
+
+export default function CarouselRiveSlide({ src, isActive }) {
   const { RiveComponent, rive } = useRive({
     src,
     autoplay: true,
-    paused: !isActive, // Pause inactive slides to avoid ghost animation
-    stateMachines: stateMachineName,
+    paused: !isActive,
     layout: new Layout({
       fit: Fit.Contain,
       alignment: Alignment.Center,
     }),
-    // You can add assetLoader here if you want font/audio handling
+    assetLoader: loadAllAssets,
   });
 
   useEffect(() => {
     if (!rive) return;
 
     const onEvent = (event) => {
-      // Optionally log events
-      // console.log("Rive event:", event.data.name);
+      console.log("Rive event:", event.data.name);
     };
 
     if (isActive) {
@@ -44,10 +50,7 @@ export default function CarouselRiveSlide({
   }, [rive, isActive]);
 
   return (
-    <div
-      style={{ width: "100%", height: "100%", pointerEvents: "none" }}
-      className="rive-wrapper"
-    >
+    <div style={{ width: "100%", height: "100%", pointerEvents: "none" }}>
       <RiveComponent />
     </div>
   );

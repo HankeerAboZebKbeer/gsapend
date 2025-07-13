@@ -6,69 +6,41 @@ import "./Showreel.css";
 
 gsap.registerPlugin(Draggable);
 
+const riveSlides = [
+  "/coin.riv",
+  "/mascot.riv",
+  "/icons.riv",
+  "/boume.riv",
+  "/coin.riv",
+  "/icons.riv",
+  "/mascot.riv",
+  "/boume.riv",
+];
+
+// Map each rive file to its state machine name
+const stateMachineMap = {
+  "/coin.riv": "Main SM",
+  "/mascot.riv": "Main SM",
+  "/icons.riv": "Main SM",
+  "/boume.riv": "Main SM",
+};
+
 export default function Showreel() {
   const wrapperRef = useRef(null);
   const slideRefs = useRef([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const slideWidth = useRef(0);
   const dragInstance = useRef(null);
-  const [animations, setAnimations] = useState([]);
 
-  // Fetch animations from backend + decode blobs
-  useEffect(() => {
-    fetch("http://localhost/gsapclone/get_animations.php")
-      .then((res) => res.json())
-      .then((data) => {
-        const animationsWithBlob = data.map((animation) => {
-          // Decode Rive file
-          const byteCharacters = atob(animation.rive_file);
-          const byteNumbers = Array.from(byteCharacters, (c) =>
-            c.charCodeAt(0)
-          );
-          const blob = new Blob([new Uint8Array(byteNumbers)], {
-            type: "application/octet-stream",
-          });
-          const blobUrl = URL.createObjectURL(blob);
-
-          return {
-            ...animation,
-            rive_blob_url: blobUrl,
-            font_blob_url: animation.font_url || null,
-            audio_url: animation.audio_url || null,
-          };
-        });
-
-        setAnimations(animationsWithBlob);
-      })
-      .catch((err) => console.error("Error loading animations:", err));
-  }, []);
-
-  // Update slide positions and styles (dim + scale + zIndex)
   const updateSlides = (index) => {
-    if (!slideRefs.current.length) return;
-
-    const total = animations.length;
+    const total = riveSlides.length;
     const getOffset = (i) =>
       ((i - index + total) % total) - Math.floor(total / 2);
+
     slideRefs.current.forEach((slide, i) => {
       const offset = getOffset(i);
-      const absOffset = Math.abs(offset);
-
       const scale = offset === 0 ? 1.1 : 0.9;
-
-      // Set opacity based on distance:
-      // Active slide: 1
-      // Immediate neighbors: 0.5
-      // Further away: 0 (fully hidden)
-      let opacity;
-      if (absOffset === 0) {
-        opacity = 1;
-      } else if (absOffset === 1) {
-        opacity = 0.5;
-      } else {
-        opacity = 0;
-      }
-
+      const opacity = offset === 0 ? 1 : 0.5;
       const z = offset === 0 ? 10 : 1;
 
       gsap.to(slide, {
@@ -87,7 +59,7 @@ export default function Showreel() {
       slideWidth.current = slideRefs.current[0].offsetWidth * 1.1;
       updateSlides(currentIndex);
     }
-  }, [currentIndex, animations]);
+  }, [currentIndex]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -96,25 +68,28 @@ export default function Showreel() {
         updateSlides(currentIndex);
       }
     };
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [currentIndex, animations]);
+  }, [currentIndex]);
 
-  // Draggable logic for swiping carousel
   useEffect(() => {
-    if (!wrapperRef.current || animations.length === 0) return;
+    const wrapper = wrapperRef.current;
+    if (!wrapper || !slideRefs.current[0]) return;
 
     slideWidth.current = slideRefs.current[0].offsetWidth * 1.1;
 
-    dragInstance.current = Draggable.create(wrapperRef.current, {
+    dragInstance.current = Draggable.create(wrapper, {
       type: "x",
       inertia: false,
       cursor: "grab",
       activeCursor: "grabbing",
+
       onPress() {
         this.startX = this.x;
         this.hasSnapped = false;
       },
+
       onDrag() {
         const dragOffset = this.x / slideWidth.current;
 
@@ -122,21 +97,21 @@ export default function Showreel() {
           this.hasSnapped = true;
           const direction = this.x > 0 ? -1 : 1;
           const newIndex =
-            (currentIndex + direction + animations.length) % animations.length;
+            (currentIndex + direction + riveSlides.length) % riveSlides.length;
           setCurrentIndex(newIndex);
           this.endDrag();
-          gsap.set(wrapperRef.current, { x: 0 });
+          gsap.set(wrapper, { x: 0 });
           return;
         }
 
         slideRefs.current.forEach((slide, i) => {
           const relativeIndex =
-            ((i - currentIndex + animations.length) % animations.length) -
-            Math.floor(animations.length / 2);
+            ((i - currentIndex + riveSlides.length) % riveSlides.length) -
+            Math.floor(riveSlides.length / 2);
           const xOffset = (relativeIndex + dragOffset) * slideWidth.current;
           const distance = Math.abs(relativeIndex + dragOffset);
           const scale = gsap.utils.interpolate(1.1, 0.9, Math.min(distance, 1));
-          const opacity = gsap.utils.interpolate(1, 0.5, Math.min(distance, 1)); // DIM inactive slides
+          const opacity = gsap.utils.interpolate(1, 0.5, Math.min(distance, 1));
           const z = distance < 0.5 ? 10 : 1;
 
           gsap.set(slide, {
@@ -147,9 +122,10 @@ export default function Showreel() {
           });
         });
       },
+
       onRelease() {
         if (!this.hasSnapped) {
-          gsap.to(wrapperRef.current, {
+          gsap.to(wrapper, {
             x: 0,
             duration: 2,
             ease: "elastic.out(1, 0.5)",
@@ -159,41 +135,36 @@ export default function Showreel() {
     })[0];
 
     return () => dragInstance.current?.kill();
-  }, [currentIndex, animations]);
+  }, [currentIndex]);
 
-  const next = () => setCurrentIndex((i) => (i + 1) % animations.length);
+  const next = () => setCurrentIndex((i) => (i + 1) % riveSlides.length);
   const prev = () =>
-    setCurrentIndex((i) => (i - 1 + animations.length) % animations.length);
+    setCurrentIndex((i) => (i - 1 + riveSlides.length) % riveSlides.length);
 
   return (
     <div className="showreel-container">
       <div className="draggable-wrapper" ref={wrapperRef}>
         <div className="carousel">
-          {animations.length > 0 &&
-            animations.map((animation, i) => (
-              <div
-                className="carousel-slide"
-                key={animation.id || i}
-                ref={(el) => (slideRefs.current[i] = el)}
-              >
-                <CarouselRiveSlide
-                  src={animation.rive_blob_url}
-                  fontSrc={animation.font_blob_url}
-                  audioSrc={animation.audio_url}
-                  isActive={i === currentIndex}
-                  stateMachineName={animation.state_machine}
-                />
-              </div>
-            ))}
+          {riveSlides.map((src, i) => (
+            <div
+              className="carousel-slide"
+              key={i}
+              ref={(el) => (slideRefs.current[i] = el)}
+            >
+              <CarouselRiveSlide
+                src={src}
+                isActive={i === currentIndex}
+                stateMachineName={stateMachineMap[src]}
+              />
+            </div>
+          ))}
         </div>
       </div>
 
-      {animations.length > 1 && (
-        <div className="nav-arrows">
-          <button onClick={prev}>&larr;</button>
-          <button onClick={next}>&rarr;</button>
-        </div>
-      )}
+      <div className="nav-arrows">
+        <button onClick={prev}>&larr;</button>
+        <button onClick={next}>&rarr;</button>
+      </div>
     </div>
   );
 }
