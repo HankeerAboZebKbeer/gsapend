@@ -14,7 +14,9 @@
   "dependencies": {
     "@rive-app/react-webgl2": "^4.21.4",
     "@studio-freight/lenis": "^1.0.42",
+    "@supabase/supabase-js": "^2.51.0",
     "express": "^5.1.0",
+    "formidable": "^3.5.4",
     "gsap": "^3.13.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
